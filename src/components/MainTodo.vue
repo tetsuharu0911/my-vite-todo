@@ -1,57 +1,35 @@
 <script setup>
-import { hasOwn } from '@vue/shared';
 import { ref } from 'vue';
+import { useTodoList } from '/src/composables/useTodoList.js';
+
 const todoRef = ref('');
-const todoListRef = ref([]);
-const ls = localStorage.todoList;
-todoListRef.value = ls ? JSON.parse(ls) : [];
+// const ls = localStorage.todoList;
+const { todoListRef, add, show, edit, del, check } = useTodoList();
 const isEditRef = ref(false);
 let editId = -1;
 
 const addTodo = () => {
-  // IDを簡易的にミリ秒で登録する
-  const id = new Date().getTime();
-
-  // 配列にTODOを格納
-  todoListRef.value.push({ id: id, task: todoRef.value });
-
-  // ローカルストレージに登録
-  localStorage.todoList = JSON.stringify(todoListRef.value);
+  add(todoRef.value);
+  todoRef.value = '';
 };
 
 const showTodo = (id) => {
-  // 配列todoListRefから引数のidと同じ要素を検索する。
-  const todo = todoListRef.value.find((todo) => todo.id == id);
-  todoRef.value = todo.task;
+  todoRef.value = show(id);
   isEditRef.value = true;
-  editId = id;
 };
 
 const editTodo = () => {
-  // 編集対象となるTODOを取得
-  const todo = todoListRef.value.find((todo) => todo.id == editId);
-  // TODOリストから編集対象のインデックスを取得
-  const idx = todoListRef.value.findIndex((todo) => todo.id == editId);
-  // taskを編集後のTODOで置き換え
-  todo.task = todoRef.value;
-  // splice関数でインデックスをもとに対象オブジェクトの置き換え
-  todoListRef.value.splice(idx, 1, todo);
-  // ローカルストレージに保存
-  localStorage.todoList = JSON.stringify(todoListRef.value);
-  isEditRef.value = false; // 編集モードを終了
-  editId = -1;
+  edit(todoRef.value);
+  isEditRef.value = false;
   todoRef.value = '';
 };
 
 const deleteTodo = (id) => {
-  const todo = todoListRef.value.find((todo) => todo.id === id);
-  const idx = todoListRef.value.findIndex((todo) => todo.id === id);
+  del(id);
+};
 
-  const delMsg = '「' + todo.task + '」を削除しますか？';
-  if (!confirm(delMsg)) return;
-
-  todoListRef.value.splice(idx, 1);
-  localStorage.todoList = JSON.stringify(todoListRef.value);
+const changeCheck = (id) => {
+  check(id);
 };
 </script>
 
